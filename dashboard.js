@@ -87,7 +87,7 @@ function loadUsers() {
             <div class="text-sm text-gray-900">${user.email}</div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <select class="roleSelect text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
+            <select class="roleSelect text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-black focus:border-transparent" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
               <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
               <option value="moderator" ${user.role === 'moderator' ? 'selected' : ''}>Moderator</option>
               <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
@@ -100,7 +100,7 @@ function loadUsers() {
                     }
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <button class="updateRoleBtn inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
+            <button class="updateRoleBtn inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
               <i class="fas fa-edit mr-1"></i>Update
             </button>
           </td>
@@ -123,7 +123,7 @@ function addRoleUpdateListeners() {
                 text: `Are you sure you want to change this user's role to ${newRole}?`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3B82F6',
+                confirmButtonColor: '#000000',
                 cancelButtonColor: '#6B7280',
                 confirmButtonText: 'Yes, update it!',
                 cancelButtonText: 'Cancel'
@@ -144,7 +144,7 @@ function addRoleUpdateListeners() {
                                     title: 'Success!',
                                     text: data.message,
                                     icon: 'success',
-                                    confirmButtonColor: '#10B981'
+                                    confirmButtonColor: '#000000'
                                 });
                                 loadUsers();
                             } else {
@@ -168,7 +168,7 @@ logoutBtn.addEventListener('click', function () {
         text: 'Are you sure you want to logout?',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#EF4444',
+        confirmButtonColor: '#000000',
         cancelButtonColor: '#6B7280',
         confirmButtonText: 'Yes, logout!'
     }).then((result) => {
