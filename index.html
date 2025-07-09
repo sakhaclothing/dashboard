@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Management - Sakha Clothing</title>
+  <title>Dashboard - Sakha Clothing</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -41,7 +41,7 @@
     
     <nav class="mt-6">
       <div class="px-6">
-        <a href="/dashboard/index.html" class="flex items-center px-4 py-3 text-gray-700 hover:bg-black hover:text-white rounded-lg transition-colors">
+        <a href="/dashboard/index.html" class="flex items-center px-4 py-3 text-sakha-black bg-black bg-opacity-5 rounded-lg">
           <i class="fas fa-tachometer-alt mr-3"></i>
           <span class="font-medium">Dashboard</span>
         </a>
@@ -49,7 +49,7 @@
       
       <div class="mt-6 px-6">
         <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Management</div>
-        <a href="/dashboard/user-management.html" class="flex items-center px-4 py-3 text-sakha-black bg-black bg-opacity-5 rounded-lg">
+        <a href="/dashboard/user-management.html" class="flex items-center px-4 py-3 text-gray-700 hover:bg-black hover:text-white rounded-lg transition-colors">
           <i class="fas fa-users mr-3"></i>
           <span class="font-medium">User Management</span>
         </a>
@@ -74,7 +74,7 @@
           <button id="openSidebar" class="lg:hidden text-gray-500 hover:text-sakha-black mr-4" title="Open sidebar">
             <i class="fas fa-bars"></i>
           </button>
-          <h1 class="text-2xl font-bold text-sakha-black font-urbanist">User Management</h1>
+          <h1 class="text-2xl font-bold text-sakha-black font-urbanist">Dashboard</h1>
         </div>
         
         <div class="flex items-center space-x-4">
@@ -102,9 +102,22 @@
       </div>
     </header>
 
-    <!-- User Management Content -->
+    <!-- Dashboard Content -->
     <main class="p-6">
       <div id="adminOnly" class="hidden">
+        <!-- Welcome Section -->
+        <div class="bg-gradient-to-r from-sakha-black to-gray-800 rounded-lg shadow-lg p-8 mb-8">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-3xl font-bold text-white font-urbanist mb-2">Welcome back, <span id="welcomeName">Admin</span>!</h2>
+              <p class="text-gray-300">Here's what's happening with your Sakha Clothing store today.</p>
+            </div>
+            <div class="hidden lg:block">
+              <img src="https://sakhaclothing.shop/images/Minimalist%20Line%20Business%20Logo.png" alt="Logo" class="w-16 h-16 opacity-20">
+            </div>
+          </div>
+        </div>
+
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -125,12 +138,26 @@
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-check-circle text-white text-sm"></i>
+                  <i class="fas fa-shopping-cart text-white text-sm"></i>
                 </div>
               </div>
               <div class="ml-4">
-                <div class="text-sm font-medium text-gray-500">Verified Users</div>
-                <div class="text-2xl font-bold text-sakha-black" id="verifiedUsers">0</div>
+                <div class="text-sm font-medium text-gray-500">Total Orders</div>
+                <div class="text-2xl font-bold text-sakha-black">0</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-box text-white text-sm"></i>
+                </div>
+              </div>
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-500">Products</div>
+                <div class="text-2xl font-bold text-sakha-black">0</div>
               </div>
             </div>
           </div>
@@ -139,128 +166,129 @@
             <div class="flex items-center">
               <div class="flex-shrink-0">
                 <div class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-user-clock text-white text-sm"></i>
+                  <i class="fas fa-dollar-sign text-white text-sm"></i>
                 </div>
               </div>
               <div class="ml-4">
-                <div class="text-sm font-medium text-gray-500">Pending Verification</div>
-                <div class="text-2xl font-bold text-sakha-black" id="pendingUsers">0</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div class="flex items-center">
-              <div class="flex-shrink-0">
-                <div class="w-8 h-8 bg-sakha-black rounded-lg flex items-center justify-center">
-                  <i class="fas fa-shield-alt text-white text-sm"></i>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="text-sm font-medium text-gray-500">Admins</div>
-                <div class="text-2xl font-bold text-sakha-black" id="adminUsers">0</div>
+                <div class="text-sm font-medium text-gray-500">Revenue</div>
+                <div class="text-2xl font-bold text-sakha-black">$0</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Filters and Search -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <div class="relative">
-                <input type="text" id="searchInput" placeholder="Search users..." 
-                       class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent w-full sm:w-64">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-sakha-black font-urbanist mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <a href="/dashboard/user-management.html" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-sakha-black hover:text-white transition-colors">
+                <i class="fas fa-users mr-3 text-lg"></i>
+                <div>
+                  <div class="font-medium">Manage Users</div>
+                  <div class="text-sm text-gray-500">View and edit user accounts</div>
+                </div>
+              </a>
+              
+              <a href="#" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-sakha-black hover:text-white transition-colors">
+                <i class="fas fa-shopping-cart mr-3 text-lg"></i>
+                <div>
+                  <div class="font-medium">View Orders</div>
+                  <div class="text-sm text-gray-500">Check order status</div>
+                </div>
+              </a>
+              
+              <a href="#" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-sakha-black hover:text-white transition-colors">
+                <i class="fas fa-box mr-3 text-lg"></i>
+                <div>
+                  <div class="font-medium">Manage Products</div>
+                  <div class="text-sm text-gray-500">Add or edit products</div>
+                </div>
+              </a>
+              
+              <a href="#" class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-sakha-black hover:text-white transition-colors">
+                <i class="fas fa-chart-bar mr-3 text-lg"></i>
+                <div>
+                  <div class="font-medium">Analytics</div>
+                  <div class="text-sm text-gray-500">View sales reports</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-sakha-black font-urbanist mb-4">Recent Activity</h3>
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">New user registered</div>
+                  <div class="text-xs text-gray-500">2 minutes ago</div>
+                </div>
               </div>
               
-              <select id="roleFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-                <option value="">All Roles</option>
-                <option value="user">User</option>
-                <option value="moderator">Moderator</option>
-                <option value="admin">Admin</option>
-              </select>
+              <div class="flex items-center">
+                <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">Order #1234 completed</div>
+                  <div class="text-xs text-gray-500">15 minutes ago</div>
+                </div>
+              </div>
               
-              <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-                <option value="">All Status</option>
-                <option value="verified">Verified</option>
-                <option value="pending">Pending</option>
-              </select>
+              <div class="flex items-center">
+                <div class="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">Product inventory updated</div>
+                  <div class="text-xs text-gray-500">1 hour ago</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center">
+                <div class="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">New product added</div>
+                  <div class="text-xs text-gray-500">2 hours ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-sakha-black font-urbanist mb-4">System Status</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div class="flex items-center">
+                <i class="fas fa-server text-green-500 mr-3"></i>
+                <div>
+                  <div class="font-medium">Backend API</div>
+                  <div class="text-sm text-gray-500">Running</div>
+                </div>
+              </div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
             
-            <div class="flex space-x-3">
-              <button id="addUserBtn" class="px-4 py-2 bg-sakha-black text-white rounded-lg hover:bg-gray-800 transition-colors">
-                <i class="fas fa-plus mr-2"></i>Add User
-              </button>
-              <button id="exportBtn" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                <i class="fas fa-download mr-2"></i>Export
-              </button>
+            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div class="flex items-center">
+                <i class="fas fa-database text-green-500 mr-3"></i>
+                <div>
+                  <div class="font-medium">Database</div>
+                  <div class="text-sm text-gray-500">Connected</div>
+                </div>
+              </div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
-          </div>
-        </div>
-
-        <!-- Users Table -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-sakha-black font-urbanist">Users List</h2>
-              <div class="text-sm text-gray-500">
-                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> users
+            
+            <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div class="flex items-center">
+                <i class="fas fa-envelope text-green-500 mr-3"></i>
+                <div>
+                  <div class="font-medium">Email Service</div>
+                  <div class="text-sm text-gray-500">Active</div>
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" id="sortUsername">
-                    User <i class="fas fa-sort ml-1"></i>
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" id="sortEmail">
-                    Email <i class="fas fa-sort ml-1"></i>
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" id="sortRole">
-                    Role <i class="fas fa-sort ml-1"></i>
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" id="sortStatus">
-                    Status <i class="fas fa-sort ml-1"></i>
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="userTableBody" class="bg-white divide-y divide-gray-200">
-                <!-- User rows here -->
-              </tbody>
-            </table>
-          </div>
-          
-          <!-- Pagination -->
-          <div class="px-6 py-4 border-t border-gray-200">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="text-sm text-gray-700">Show:</span>
-                <select id="pageSize" class="px-2 py-1 border border-gray-300 rounded text-sm">
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                </select>
-                <span class="text-sm text-gray-700">per page</span>
-              </div>
-              
-              <div class="flex items-center space-x-2">
-                <button id="prevPage" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50">
-                  Previous
-                </button>
-                <span class="text-sm text-gray-700">
-                  Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
-                </span>
-                <button id="nextPage" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50">
-                  Next
-                </button>
-              </div>
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
           </div>
         </div>
@@ -282,116 +310,6 @@
     </main>
   </div>
 
-  <!-- Add User Modal -->
-  <div id="addUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-      <div class="flex items-center justify-between p-6 border-b border-gray-200">
-        <h3 class="text-lg font-semibold text-sakha-black font-urbanist">Add New User</h3>
-        <button id="closeAddUserModal" class="text-gray-400 hover:text-sakha-black">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <form id="addUserForm" class="p-6 space-y-4">
-        <div>
-          <label for="newUsername" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-          <input type="text" id="newUsername" name="username" required 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-        </div>
-        
-        <div>
-          <label for="newEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" id="newEmail" name="email" required 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-        </div>
-        
-        <div>
-          <label for="newFullname" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-          <input type="text" id="newFullname" name="fullname" required 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-        </div>
-        
-        <div>
-          <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input type="password" id="newPassword" name="password" required 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-        </div>
-        
-        <div>
-          <label for="newRole" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-          <select id="newRole" name="role" required 
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-            <option value="user">User</option>
-            <option value="moderator">Moderator</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        
-        <div class="flex items-center space-x-3 pt-4">
-          <button type="submit" class="flex-1 bg-sakha-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors">
-            <i class="fas fa-plus mr-2"></i>Add User
-          </button>
-          <button type="button" id="cancelAddUser" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Edit User Modal -->
-  <div id="editUserModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-      <div class="flex items-center justify-between p-6 border-b border-gray-200">
-        <h3 class="text-lg font-semibold text-sakha-black font-urbanist">Edit User</h3>
-        <button id="closeEditUserModal" class="text-gray-400 hover:text-sakha-black">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <form id="editUserForm" class="p-6 space-y-4">
-        <input type="hidden" id="editUserId" name="userId">
-        
-        <div>
-          <label for="editUsername" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-          <input type="text" id="editUsername" name="username" required 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-        </div>
-        
-        <div>
-          <label for="editEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input type="email" id="editEmail" name="email" required 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-        </div>
-        
-        <div>
-          <label for="editFullname" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-          <input type="text" id="editFullname" name="fullname" required 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-        </div>
-        
-        <div>
-          <label for="editRole" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-          <select id="editRole" name="role" required 
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent">
-            <option value="user">User</option>
-            <option value="moderator">Moderator</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        
-        <div class="flex items-center space-x-3 pt-4">
-          <button type="submit" class="flex-1 bg-sakha-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors">
-            <i class="fas fa-save mr-2"></i>Save Changes
-          </button>
-          <button type="button" id="cancelEditUser" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script src="user-management.js"></script>
+  <script src="dashboard.js"></script>
 </body>
 </html> 

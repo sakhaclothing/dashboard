@@ -1,279 +1,178 @@
-// Cek token
-const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-const adminOnly = document.getElementById('adminOnly');
-const notAdmin = document.getElementById('notAdmin');
-const userTableBody = document.getElementById('userTableBody');
-const logoutBtn = document.getElementById('logoutBtn');
-const adminName = document.getElementById('adminName');
-const adminRole = document.getElementById('adminRole');
+// Dashboard JavaScript
+document.addEventListener('DOMContentLoaded', function () {
+    // Check authentication and role
+    checkAuth();
 
-// Add User Modal elements
-const addUserBtn = document.getElementById('addUserBtn');
-const addUserModal = document.getElementById('addUserModal');
-const closeAddUserModal = document.getElementById('closeAddUserModal');
-const cancelAddUser = document.getElementById('cancelAddUser');
-const addUserForm = document.getElementById('addUserForm');
+    // Initialize sidebar
+    initSidebar();
 
-// Sidebar functionality
-const sidebar = document.getElementById('sidebar');
-const openSidebar = document.getElementById('openSidebar');
-const closeSidebar = document.getElementById('closeSidebar');
+    // Initialize logout
+    initLogout();
 
-openSidebar.addEventListener('click', () => {
-    sidebar.classList.remove('-translate-x-full');
+    // Load dashboard data
+    loadDashboardData();
 });
 
-closeSidebar.addEventListener('click', () => {
-    sidebar.classList.add('-translate-x-full');
-});
-
-// Add User Modal functionality
-addUserBtn.addEventListener('click', () => {
-    addUserModal.classList.remove('hidden');
-});
-
-closeAddUserModal.addEventListener('click', () => {
-    addUserModal.classList.add('hidden');
-    addUserForm.reset();
-});
-
-cancelAddUser.addEventListener('click', () => {
-    addUserModal.classList.add('hidden');
-    addUserForm.reset();
-});
-
-// Close modal when clicking outside
-addUserModal.addEventListener('click', (e) => {
-    if (e.target === addUserModal) {
-        addUserModal.classList.add('hidden');
-        addUserForm.reset();
-    }
-});
-
-// Handle add user form submission
-addUserForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(addUserForm);
-    const userData = {
-        username: formData.get('username'),
-        email: formData.get('email'),
-        fullname: formData.get('fullname'),
-        password: formData.get('password'),
-        role: formData.get('role')
-    };
-
-    // Validate form data
-    if (!userData.username || !userData.email || !userData.fullname || !userData.password) {
-        Swal.fire({
-            title: 'Error!',
-            text: 'Please fill in all required fields',
-            icon: 'error',
-            confirmButtonColor: '#000000'
-        });
+// Check authentication and role
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '/login/';
         return;
     }
 
-    // Call API to create user
-    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/register', {
+    // Get user profile to check role
+    fetch('/api/profile', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify(userData)
+            'Authorization': `Bearer ${token}`
+        }
     })
-        .then(res => res.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to get profile');
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.message && data.message.includes('Berhasil')) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'User has been created successfully',
-                    icon: 'success',
-                    confirmButtonColor: '#000000'
-                });
+            if (data.role === 'admin') {
+                document.getElementById('adminOnly').classList.remove('hidden');
+                document.getElementById('notAdmin').classList.add('hidden');
 
-                // Close modal and reset form
-                addUserModal.classList.add('hidden');
-                addUserForm.reset();
-
-                // Reload users table
-                loadUsers();
+                // Update admin info
+                document.getElementById('adminName').textContent = data.fullname || data.username;
+                document.getElementById('adminRole').textContent = data.role;
+                document.getElementById('welcomeName').textContent = data.fullname || data.username;
             } else {
-                Swal.fire({
-                    title: 'Error!',
-                    text: data.error || 'Failed to create user',
-                    icon: 'error',
-                    confirmButtonColor: '#EF4444'
-                });
+                document.getElementById('adminOnly').classList.add('hidden');
+                document.getElementById('notAdmin').classList.remove('hidden');
             }
         })
         .catch(error => {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Network error. Please try again.',
-                icon: 'error',
-                confirmButtonColor: '#EF4444'
-            });
-        });
-});
-
-if (!token) {
-    adminOnly.classList.add('hidden');
-    notAdmin.classList.remove('hidden');
-} else {
-    // Cek role user
-    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/profile', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token }
-    })
-        .then(res => res.json())
-        .then(profile => {
-            if (profile.role !== 'admin') {
-                adminOnly.classList.add('hidden');
-                notAdmin.classList.remove('hidden');
-            } else {
-                adminOnly.classList.remove('hidden');
-                notAdmin.classList.add('hidden');
-                adminName.textContent = profile.fullname || profile.username || 'Admin';
-                adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
-                loadUsers();
-            }
-        })
-        .catch(() => {
-            adminOnly.classList.add('hidden');
-            notAdmin.classList.remove('hidden');
+            console.error('Error checking auth:', error);
+            localStorage.removeItem('token');
+            window.location.href = '/login/';
         });
 }
 
-function loadUsers() {
-    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/get-users', {
-        headers: { 'Authorization': 'Bearer ' + token }
-    })
-        .then(res => res.json())
-        .then(data => {
-            userTableBody.innerHTML = '';
+// Initialize sidebar functionality
+function initSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const openSidebarBtn = document.getElementById('openSidebar');
+    const closeSidebarBtn = document.getElementById('closeSidebar');
 
-            // Update stats
-            document.getElementById('totalUsers').textContent = data.total;
-            const verifiedCount = data.users.filter(user => user.is_verified).length;
-            const pendingCount = data.total - verifiedCount;
-            const adminCount = data.users.filter(user => user.role === 'admin').length;
-
-            document.getElementById('verifiedUsers').textContent = verifiedCount;
-            document.getElementById('pendingUsers').textContent = pendingCount;
-            document.getElementById('adminUsers').textContent = adminCount;
-
-            data.users.forEach(user => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50 transition-colors';
-                tr.innerHTML = `
-          <td class="px-6 py-4 whitespace-nowrap">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 h-10 w-10">
-                <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span class="text-sm font-medium text-gray-700">${user.username.charAt(0).toUpperCase()}</span>
-                </div>
-              </div>
-              <div class="ml-4">
-                <div class="text-sm font-medium text-gray-900">${user.username}</div>
-                <div class="text-sm text-gray-500">${user.fullname}</div>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm text-gray-900">${user.email}</div>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <select class="roleSelect text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-black focus:border-transparent" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
-              <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
-              <option value="moderator" ${user.role === 'moderator' ? 'selected' : ''}>Moderator</option>
-              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-            </select>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            ${user.is_verified ?
-                        '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="fas fa-check mr-1"></i>Verified</span>' :
-                        '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><i class="fas fa-clock mr-1"></i>Pending</span>'
-                    }
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <button class="updateRoleBtn inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors" data-id="${user.id}" ${user.role === 'admin' ? 'disabled' : ''}>
-              <i class="fas fa-edit mr-1"></i>Update
-            </button>
-          </td>
-        `;
-                userTableBody.appendChild(tr);
-            });
-            addRoleUpdateListeners();
+    if (openSidebarBtn) {
+        openSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
         });
+    }
+
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+        });
+    }
+
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth < 1024 &&
+            !sidebar.contains(e.target) &&
+            !openSidebarBtn.contains(e.target)) {
+            sidebar.classList.add('-translate-x-full');
+        }
+    });
 }
 
-function addRoleUpdateListeners() {
-    document.querySelectorAll('.updateRoleBtn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const userId = this.getAttribute('data-id');
-            const select = document.querySelector(`select[data-id='${userId}']`);
-            const newRole = select.value;
+// Initialize logout functionality
+function initLogout() {
+    const logoutBtn = document.getElementById('logoutBtn');
 
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
             Swal.fire({
-                title: 'Update User Role?',
-                text: `Are you sure you want to change this user's role to ${newRole}?`,
-                icon: 'warning',
+                title: 'Logout',
+                text: 'Are you sure you want to logout?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#000000',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, update it!',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, logout',
                 cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/update-role', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({ user_id: userId, role: newRole })
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.message) {
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: data.message,
-                                    icon: 'success',
-                                    confirmButtonColor: '#000000'
-                                });
-                                loadUsers();
-                            } else {
-                                Swal.fire({
-                                    title: 'Error!',
-                                    text: data.error || 'Failed to update role',
-                                    icon: 'error',
-                                    confirmButtonColor: '#EF4444'
-                                });
-                            }
-                        });
+                    localStorage.removeItem('token');
+                    window.location.href = '/login/';
                 }
             });
         });
-    });
+    }
 }
 
-logoutBtn.addEventListener('click', function () {
-    Swal.fire({
-        title: 'Logout?',
-        text: 'Are you sure you want to logout?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#000000',
-        cancelButtonColor: '#6B7280',
-        confirmButtonText: 'Yes, logout!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            localStorage.removeItem('token');
-            sessionStorage.removeItem('token');
-            window.location.href = '/login/';
+// Load dashboard data
+function loadDashboardData() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    // Load user statistics
+    fetch('/api/users', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to get users');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.users) {
+                updateUserStats(data.users);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading dashboard data:', error);
+        });
+}
+
+// Update user statistics
+function updateUserStats(users) {
+    const totalUsers = users.length;
+    const verifiedUsers = users.filter(user => user.is_verified).length;
+    const pendingUsers = totalUsers - verifiedUsers;
+    const adminUsers = users.filter(user => user.role === 'admin').length;
+
+    document.getElementById('totalUsers').textContent = totalUsers;
+    // Note: We don't have these elements in the dashboard anymore, but keeping for future use
+    // document.getElementById('verifiedUsers').textContent = verifiedUsers;
+    // document.getElementById('pendingUsers').textContent = pendingUsers;
+    // document.getElementById('adminUsers').textContent = adminUsers;
+}
+
+// Utility function to format numbers
+function formatNumber(num) {
+    return new Intl.NumberFormat().format(num);
+}
+
+// Utility function to format currency
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
+}
+
+// Utility function to format dates
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
     });
-}); 
+} 
