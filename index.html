@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Sakha Clothing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto py-8">
+    <h1 class="text-3xl font-bold mb-6 text-center">Admin Dashboard</h1>
+    <div id="adminOnly" class="hidden">
+      <div class="mb-4 flex justify-between items-center">
+        <h2 class="text-xl font-semibold">Daftar User</h2>
+        <button id="logoutBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Logout</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white rounded shadow">
+          <thead>
+            <tr>
+              <th class="py-2 px-4 border-b">Username</th>
+              <th class="py-2 px-4 border-b">Email</th>
+              <th class="py-2 px-4 border-b">Fullname</th>
+              <th class="py-2 px-4 border-b">Role</th>
+              <th class="py-2 px-4 border-b">Verifikasi</th>
+              <th class="py-2 px-4 border-b">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <!-- User rows here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="notAdmin" class="hidden text-center mt-20">
+      <h2 class="text-2xl font-bold text-red-600 mb-4">Akses Ditolak</h2>
+      <p class="text-gray-700">Hanya admin yang dapat mengakses dashboard ini.</p>
+      <a href="/login/" class="mt-4 inline-block text-blue-600 hover:underline">Kembali ke Login</a>
+    </div>
+  </div>
+  <script src="dashboard.js"></script>
+</body>
+</html> 
