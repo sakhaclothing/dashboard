@@ -95,6 +95,7 @@ if (!token) {
 
 function loadUsers() {
     fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/get-users', {
+        method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token }
     })
         .then(res => res.json())
