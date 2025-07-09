@@ -11,6 +11,7 @@ if (!token) {
 } else {
     // Cek role user
     fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/profile', {
+        method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token }
     })
         .then(res => res.json())
