@@ -38,6 +38,23 @@ if (!token) {
                 notAdmin.classList.add('hidden');
                 adminName.textContent = profile.fullname || profile.username || 'Admin';
                 adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
+                // Ambil total visitor dari tracker
+                if (window.tracker) {
+                    window.tracker.getCount().then(function (count) {
+                        document.getElementById('totalVisitors').textContent = count;
+                    }).catch(function () {
+                        document.getElementById('totalVisitors').textContent = '-';
+                    });
+                } else {
+                    // Jika tracker belum ready, tunggu sampai ready
+                    document.addEventListener('tracker-ready', function () {
+                        window.tracker.getCount().then(function (count) {
+                            document.getElementById('totalVisitors').textContent = count;
+                        }).catch(function () {
+                            document.getElementById('totalVisitors').textContent = '-';
+                        });
+                    });
+                }
             }
         })
         .catch(() => {
