@@ -5,6 +5,7 @@ const notAdmin = document.getElementById('notAdmin');
 const userTableBody = document.getElementById('userTableBody');
 const logoutBtn = document.getElementById('logoutBtn');
 const adminName = document.getElementById('adminName');
+const adminRole = document.getElementById('adminRole');
 
 // Sidebar functionality
 const sidebar = document.getElementById('sidebar');
@@ -36,7 +37,8 @@ if (!token) {
             } else {
                 adminOnly.classList.remove('hidden');
                 notAdmin.classList.add('hidden');
-                adminName.textContent = profile.username || 'Admin';
+                adminName.textContent = profile.fullname || profile.username || 'Admin';
+                adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
                 loadUsers();
             }
         })
