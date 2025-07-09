@@ -7,6 +7,13 @@ const logoutBtn = document.getElementById('logoutBtn');
 const adminName = document.getElementById('adminName');
 const adminRole = document.getElementById('adminRole');
 
+// Add User Modal elements
+const addUserBtn = document.getElementById('addUserBtn');
+const addUserModal = document.getElementById('addUserModal');
+const closeAddUserModal = document.getElementById('closeAddUserModal');
+const cancelAddUser = document.getElementById('cancelAddUser');
+const addUserForm = document.getElementById('addUserForm');
+
 // Sidebar functionality
 const sidebar = document.getElementById('sidebar');
 const openSidebar = document.getElementById('openSidebar');
@@ -18,6 +25,97 @@ openSidebar.addEventListener('click', () => {
 
 closeSidebar.addEventListener('click', () => {
     sidebar.classList.add('-translate-x-full');
+});
+
+// Add User Modal functionality
+addUserBtn.addEventListener('click', () => {
+    addUserModal.classList.remove('hidden');
+});
+
+closeAddUserModal.addEventListener('click', () => {
+    addUserModal.classList.add('hidden');
+    addUserForm.reset();
+});
+
+cancelAddUser.addEventListener('click', () => {
+    addUserModal.classList.add('hidden');
+    addUserForm.reset();
+});
+
+// Close modal when clicking outside
+addUserModal.addEventListener('click', (e) => {
+    if (e.target === addUserModal) {
+        addUserModal.classList.add('hidden');
+        addUserForm.reset();
+    }
+});
+
+// Handle add user form submission
+addUserForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(addUserForm);
+    const userData = {
+        username: formData.get('username'),
+        email: formData.get('email'),
+        fullname: formData.get('fullname'),
+        password: formData.get('password'),
+        role: formData.get('role')
+    };
+
+    // Validate form data
+    if (!userData.username || !userData.email || !userData.fullname || !userData.password) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please fill in all required fields',
+            icon: 'error',
+            confirmButtonColor: '#000000'
+        });
+        return;
+    }
+
+    // Call API to create user
+    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(userData)
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message && data.message.includes('Berhasil')) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'User has been created successfully',
+                    icon: 'success',
+                    confirmButtonColor: '#000000'
+                });
+
+                // Close modal and reset form
+                addUserModal.classList.add('hidden');
+                addUserForm.reset();
+
+                // Reload users table
+                loadUsers();
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.error || 'Failed to create user',
+                    icon: 'error',
+                    confirmButtonColor: '#EF4444'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Network error. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#EF4444'
+            });
+        });
 });
 
 if (!token) {
