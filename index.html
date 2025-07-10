@@ -294,6 +294,20 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/gh/domyid/tracker@main/index.js"></script>
+  <script>
+    // Pastikan window.tracker tersedia dan memiliki fungsi getCount
+    if (!window.tracker) {
+      window.tracker = {
+        getCount: function() {
+          // Ganti URL di bawah dengan endpoint yang mengembalikan jumlah visitor
+          return fetch("https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/tracker/count")
+            .then(res => res.json())
+            .then(data => data.count);
+        }
+      };
+      document.dispatchEvent(new Event('tracker-ready'));
+    }
+  </script>
   <script src="dashboard.js"></script>
 </body>
 </html> 
