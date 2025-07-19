@@ -59,7 +59,8 @@ class ProductManager {
 
     async loadProducts() {
         try {
-            const url = `${this.apiBaseUrl}/products`;
+            // Use all=true to get all products (active and inactive) for admin dashboard
+            const url = `${this.apiBaseUrl}/products?all=true`;
             console.log('Loading products from:', url);
 
             const response = await fetch(url);

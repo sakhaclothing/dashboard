@@ -26,6 +26,10 @@
                 <button onclick="testGetFeaturedProducts()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
                     Test GET /products?featured=true
                 </button>
+                
+                <button onclick="testGetAllProducts()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                    Test GET /products?all=true
+                </button>
             </div>
         </div>
         
@@ -114,6 +118,22 @@
                 });
             } catch (error) {
                 addResult('GET /products?featured=true - ERROR', {
+                    error: error.message
+                }, true);
+            }
+        }
+        
+        async function testGetAllProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/products?all=true`);
+                const data = await response.json();
+                
+                addResult('GET /products?all=true', {
+                    status: response.status,
+                    data: data
+                });
+            } catch (error) {
+                addResult('GET /products?all=true - ERROR', {
                     error: error.message
                 }, true);
             }
