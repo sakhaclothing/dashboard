@@ -38,6 +38,7 @@ class ProductManager {
         this.products = [];
         this.currentProduct = null;
         this.apiBaseUrl = 'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha'; // Update with your actual backend URL
+        this.isSaving = false;
 
         this.initializeEventListeners();
         this.loadProducts();
@@ -253,21 +254,15 @@ class ProductManager {
     }
 
     async saveProduct() {
-        const formData = {
-            name: document.getElementById('productName').value,
-            description: document.getElementById('productDescription').value,
-            price: parseFloat(document.getElementById('productPrice').value),
-            category: document.getElementById('productCategory').value,
-            image_url: document.getElementById('productImage').value,
-            stock: parseInt(document.getElementById('productStock').value),
-            is_active: document.getElementById('productActive').checked,
-            is_featured: document.getElementById('productFeatured').checked
-        };
-
-        const productId = document.getElementById('productId').value;
-        const isEdit = productId !== '';
-
+        if (this.isSaving) return;
+        this.isSaving = true;
         try {
+            const form = document.getElementById('productForm');
+            const formData = new FormData(form);
+
+            const productId = document.getElementById('productId').value;
+            const isEdit = productId !== '';
+
             const url = isEdit ? `${this.apiBaseUrl}/products/${productId}` : `${this.apiBaseUrl}/products`;
             const method = isEdit ? 'PUT' : 'POST';
 
@@ -278,7 +273,7 @@ class ProductManager {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(Object.fromEntries(formData)) // Convert FormData to JSON
             });
 
             console.log('Response status:', response.status);
@@ -298,6 +293,8 @@ class ProductManager {
         } catch (error) {
             console.error('Error saving product:', error);
             this.showNotification(`Error saving product: ${error.message}`, 'error');
+        } finally {
+            this.isSaving = false;
         }
     }
 
