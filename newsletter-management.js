@@ -1,0 +1,408 @@
+// Newsletter Management System
+class NewsletterManager {
+    constructor() {
+        this.apiBaseUrl = 'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha';
+        this.subscribers = [];
+        this.notifications = [];
+        this.products = [];
+        this.currentTab = 'subscribers';
+
+        this.init();
+    }
+
+    async init() {
+        this.setupEventListeners();
+        await this.loadData();
+        this.updateStats();
+    }
+
+    setupEventListeners() {
+        // Tab switching
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                this.switchTab(e.target.dataset.tab);
+            });
+        });
+
+        // Subscriber filter
+        document.getElementById('subscriberFilter').addEventListener('change', (e) => {
+            this.filterSubscribers(e.target.value);
+        });
+
+        // Product select for notification
+        document.getElementById('productSelect').addEventListener('change', (e) => {
+            this.updateNotificationPreview(e.target.value);
+        });
+
+        // Notification form
+        document.getElementById('notificationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.sendNotification();
+        });
+    }
+
+    async loadData() {
+        await Promise.all([
+            this.loadSubscribers(),
+            this.loadNotifications(),
+            this.loadProducts()
+        ]);
+    }
+
+    async loadSubscribers() {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/newsletter/subscribers`);
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                this.subscribers = data.data;
+                this.renderSubscribers();
+            } else {
+                throw new Error(data.message || 'Failed to load subscribers');
+            }
+        } catch (error) {
+            console.error('Error loading subscribers:', error);
+            this.showNotification('Error loading subscribers', 'error');
+        }
+    }
+
+    async loadNotifications() {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/newsletter/history`);
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                this.notifications = data.data;
+                this.renderNotifications();
+            } else {
+                throw new Error(data.message || 'Failed to load notifications');
+            }
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            this.showNotification('Error loading notifications', 'error');
+        }
+    }
+
+    async loadProducts() {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/products?all=true`);
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                this.products = data.data;
+                this.populateProductSelect();
+            } else {
+                throw new Error(data.message || 'Failed to load products');
+            }
+        } catch (error) {
+            console.error('Error loading products:', error);
+            this.showNotification('Error loading products', 'error');
+        }
+    }
+
+    switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('border-blue-500', 'text-blue-600');
+            button.classList.add('border-transparent', 'text-gray-500');
+        });
+
+        const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+        activeButton.classList.remove('border-transparent', 'text-gray-500');
+        activeButton.classList.add('border-blue-500', 'text-blue-600');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+
+        document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+        this.currentTab = tabName;
+
+        // Load data for specific tab
+        if (tabName === 'send-notification') {
+            this.updateSubscriberCount();
+        }
+    }
+
+    renderSubscribers() {
+        const tbody = document.getElementById('subscribersTableBody');
+        tbody.innerHTML = '';
+
+        this.subscribers.forEach(subscriber => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${subscriber.email}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${subscriber.is_active
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }">
+                        ${subscriber.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${new Date(subscriber.created_at).toLocaleDateString()}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="newsletterManager.toggleSubscriberStatus('${subscriber.email}', ${subscriber.is_active})" 
+                            class="text-indigo-600 hover:text-indigo-900 mr-3">
+                        ${subscriber.is_active ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button onclick="newsletterManager.deleteSubscriber('${subscriber.email}')" 
+                            class="text-red-600 hover:text-red-900">
+                        Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    renderNotifications() {
+        const tbody = document.getElementById('notificationsTableBody');
+        tbody.innerHTML = '';
+
+        this.notifications.forEach(notification => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${notification.product.name}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${new Date(notification.sent_at).toLocaleDateString()}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${notification.sent_count}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${notification.status === 'sent'
+                    ? 'bg-green-100 text-green-800'
+                    : notification.status === 'pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                }">
+                        ${notification.status}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    populateProductSelect() {
+        const select = document.getElementById('productSelect');
+        select.innerHTML = '<option value="">Choose a product...</option>';
+
+        this.products
+            .filter(product => product.is_active)
+            .forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id || product._id;
+                option.textContent = `${product.name} - Rp ${product.price.toLocaleString()}`;
+                select.appendChild(option);
+            });
+    }
+
+    filterSubscribers(filter) {
+        let filteredSubscribers = [...this.subscribers];
+
+        if (filter === 'active') {
+            filteredSubscribers = filteredSubscribers.filter(s => s.is_active);
+        } else if (filter === 'inactive') {
+            filteredSubscribers = filteredSubscribers.filter(s => !s.is_active);
+        }
+
+        this.renderFilteredSubscribers(filteredSubscribers);
+    }
+
+    renderFilteredSubscribers(subscribers) {
+        const tbody = document.getElementById('subscribersTableBody');
+        tbody.innerHTML = '';
+
+        subscribers.forEach(subscriber => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ${subscriber.email}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${subscriber.is_active
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }">
+                        ${subscriber.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${new Date(subscriber.created_at).toLocaleDateString()}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="newsletterManager.toggleSubscriberStatus('${subscriber.email}', ${subscriber.is_active})" 
+                            class="text-indigo-600 hover:text-indigo-900 mr-3">
+                        ${subscriber.is_active ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button onclick="newsletterManager.deleteSubscriber('${subscriber.email}')" 
+                            class="text-red-600 hover:text-red-900">
+                        Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    updateNotificationPreview(productId) {
+        const preview = document.getElementById('notificationPreview');
+        const product = this.products.find(p => (p.id || p._id) === productId);
+
+        if (product) {
+            preview.innerHTML = `
+                <h3 class="font-semibold text-lg mb-2">${product.name}</h3>
+                <p class="text-gray-600 mb-2"><strong>Price:</strong> Rp ${product.price.toLocaleString()}</p>
+                <p class="text-gray-600 mb-2"><strong>Category:</strong> ${product.category}</p>
+                <p class="text-gray-600">${product.description || 'No description available'}</p>
+            `;
+        } else {
+            preview.innerHTML = '<p class="text-gray-500">Select a product to see preview...</p>';
+        }
+    }
+
+    updateSubscriberCount() {
+        const activeCount = this.subscribers.filter(s => s.is_active).length;
+        document.getElementById('subscriberCount').textContent = activeCount;
+    }
+
+    updateStats() {
+        const totalSubscribers = this.subscribers.length;
+        const activeSubscribers = this.subscribers.filter(s => s.is_active).length;
+        const notificationsSent = this.notifications.length;
+
+        document.getElementById('totalSubscribers').textContent = totalSubscribers;
+        document.getElementById('activeSubscribers').textContent = activeSubscribers;
+        document.getElementById('notificationsSent').textContent = notificationsSent;
+    }
+
+    async toggleSubscriberStatus(email, currentStatus) {
+        try {
+            const action = currentStatus ? 'unsubscribe' : 'subscribe';
+            const response = await fetch(`${this.apiBaseUrl}/newsletter/${action}?email=${encodeURIComponent(email)}`);
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                this.showNotification(data.message, 'success');
+                await this.loadSubscribers();
+                this.updateStats();
+            } else {
+                throw new Error(data.message || 'Failed to update subscriber status');
+            }
+        } catch (error) {
+            console.error('Error updating subscriber status:', error);
+            this.showNotification('Error updating subscriber status', 'error');
+        }
+    }
+
+    async deleteSubscriber(email) {
+        const result = await Swal.fire({
+            title: 'Delete Subscriber?',
+            text: `Are you sure you want to delete ${email}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                // For now, we'll just deactivate the subscriber
+                // In a real implementation, you might want to add a delete endpoint
+                await this.toggleSubscriberStatus(email, true);
+                this.showNotification('Subscriber deactivated successfully', 'success');
+            } catch (error) {
+                console.error('Error deleting subscriber:', error);
+                this.showNotification('Error deleting subscriber', 'error');
+            }
+        }
+    }
+
+    async sendNotification() {
+        const productId = document.getElementById('productSelect').value;
+        if (!productId) {
+            this.showNotification('Please select a product', 'error');
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: 'Send Notification?',
+            text: `This will send a notification about the selected product to all active subscribers.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, send it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`${this.apiBaseUrl}/newsletter/notify/${productId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    this.showNotification('Notification sent successfully!', 'success');
+                    await this.loadNotifications();
+                    this.updateStats();
+                } else {
+                    throw new Error(data.message || 'Failed to send notification');
+                }
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                this.showNotification('Error sending notification', 'error');
+            }
+        }
+    }
+
+    exportSubscribers() {
+        const activeSubscribers = this.subscribers.filter(s => s.is_active);
+        const csvContent = [
+            ['Email', 'Status', 'Subscribed Date'],
+            ...activeSubscribers.map(s => [
+                s.email,
+                s.is_active ? 'Active' : 'Inactive',
+                new Date(s.created_at).toLocaleDateString()
+            ])
+        ].map(row => row.join(',')).join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `newsletter_subscribers_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        this.showNotification('Subscribers exported successfully!', 'success');
+    }
+
+    showNotification(message, type) {
+        Swal.fire({
+            title: type === 'success' ? 'Success!' : 'Error!',
+            text: message,
+            icon: type,
+            timer: type === 'success' ? 3000 : undefined,
+            timerProgressBar: type === 'success'
+        });
+    }
+}
+
+// Initialize newsletter manager
+const newsletterManager = new NewsletterManager();
+
+// Global functions for onclick handlers
+window.exportSubscribers = () => newsletterManager.exportSubscribers(); 
