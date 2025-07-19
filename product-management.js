@@ -1,3 +1,37 @@
+// Admin check logic
+const adminOnly = document.getElementById('adminOnly');
+const notAdmin = document.getElementById('notAdmin');
+const adminName = document.getElementById('adminName');
+const adminRole = document.getElementById('adminRole');
+const token = localStorage.getItem('token');
+
+if (!token) {
+    if (adminOnly) adminOnly.classList.add('hidden');
+    if (notAdmin) notAdmin.classList.remove('hidden');
+} else {
+    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/profile', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+        .then(res => res.json())
+        .then(profile => {
+            if (profile.role !== 'admin') {
+                if (adminOnly) adminOnly.classList.add('hidden');
+                if (notAdmin) notAdmin.classList.remove('hidden');
+            } else {
+                if (adminOnly) adminOnly.classList.remove('hidden');
+                if (notAdmin) notAdmin.classList.add('hidden');
+                if (adminName) adminName.textContent = profile.fullname || profile.username || profile.email || 'Admin';
+                if (adminRole) adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
+                window.productManager = new ProductManager();
+            }
+        })
+        .catch(() => {
+            if (adminOnly) adminOnly.classList.add('hidden');
+            if (notAdmin) notAdmin.classList.remove('hidden');
+        });
+}
+
 // Product Management JavaScript
 class ProductManager {
     constructor() {

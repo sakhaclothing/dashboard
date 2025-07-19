@@ -122,50 +122,66 @@
 
     <!-- Main Content -->
     <main class="p-6">
-      <!-- Filters and Search -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div class="flex flex-col md:flex-row gap-4">
-          <div class="flex-1">
-            <input type="text" id="searchInput" placeholder="Search products..." 
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sakha-black focus:border-transparent">
+      <div id="adminOnly" class="hidden">
+        <!-- Filters and Search -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+              <input type="text" id="searchInput" placeholder="Search products..." 
+                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sakha-black focus:border-transparent">
+            </div>
+            <div class="flex gap-2">
+              <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sakha-black focus:border-transparent">
+                <option value="">All Categories</option>
+                <option value="kaos">Kaos</option>
+                <option value="jaket">Jaket</option>
+                <option value="sweater">Sweater</option>
+                <option value="sport">Sport</option>
+              </select>
+              <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sakha-black focus:border-transparent">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="featured">Featured</option>
+              </select>
+            </div>
           </div>
-          <div class="flex gap-2">
-            <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sakha-black focus:border-transparent">
-              <option value="">All Categories</option>
-              <option value="kaos">Kaos</option>
-              <option value="jaket">Jaket</option>
-              <option value="sweater">Sweater</option>
-              <option value="sport">Sport</option>
-            </select>
-            <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sakha-black focus:border-transparent">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="featured">Featured</option>
-            </select>
+        </div>
+
+        <!-- Products Table -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Featured</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
+                <!-- Products will be loaded here -->
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-
-      <!-- Products Table -->
-      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Featured</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
-              <!-- Products will be loaded here -->
-            </tbody>
-          </table>
+      <!-- Not Admin Content -->
+      <div id="notAdmin" class="hidden">
+        <div class="text-center py-12">
+          <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-sakha-black font-urbanist mb-4">Access Denied</h2>
+          <p class="text-gray-600 mb-8">You don't have permission to access this page. Only administrators can view this page.</p>
+          <a href="/login/" class="inline-flex items-center px-6 py-3 bg-sakha-black text-white rounded-lg hover:bg-gray-800 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Back to Login
+          </a>
         </div>
       </div>
     </main>
