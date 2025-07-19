@@ -257,41 +257,49 @@ class ProductManager {
         if (this.isSaving) return;
         this.isSaving = true;
         try {
-            const form = document.getElementById('productForm');
-            const formData = new FormData(form);
-
             const productId = document.getElementById('productId').value;
             const isEdit = productId !== '';
 
-            const url = isEdit ? `${this.apiBaseUrl}/products/${productId}` : `${this.apiBaseUrl}/products`;
+            const productData = {
+                name: document.getElementById('productName').value.trim(),
+                description: document.getElementById('productDescription').value.trim(),
+                price: parseFloat(document.getElementById('productPrice').value),
+                category: document.getElementById('productCategory').value,
+                image_url: document.getElementById('productImage').value.trim(),
+                stock: parseInt(document.getElementById('productStock').value),
+                is_active: document.getElementById('productActive').checked,
+                is_featured: document.getElementById('productFeatured').checked
+            };
+
+            // Validasi sederhana
+            if (!productData.name) {
+                this.showNotification('Product name is required', 'error');
+                return;
+            }
+
+            const url = isEdit
+                ? `${this.apiBaseUrl}/products/${productId}`
+                : `${this.apiBaseUrl}/products`;
             const method = isEdit ? 'PUT' : 'POST';
 
-            console.log('Saving product:', { url, method, formData, isEdit });
-
             const response = await fetch(url, {
-                method: method,
+                method,
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(Object.fromEntries(formData)) // Convert FormData to JSON
+                body: JSON.stringify(productData)
             });
 
-            console.log('Response status:', response.status);
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (data.status === 'success') {
-                this.showNotification(
-                    isEdit ? 'Product updated successfully' : 'Product created successfully',
-                    'success'
-                );
+                this.showNotification('Product saved successfully!', 'success');
                 this.closeModal();
-                this.loadProducts();
+                await this.loadProducts();
             } else {
                 throw new Error(data.message || 'Failed to save product');
             }
         } catch (error) {
-            console.error('Error saving product:', error);
             this.showNotification(`Error saving product: ${error.message}`, 'error');
         } finally {
             this.isSaving = false;
