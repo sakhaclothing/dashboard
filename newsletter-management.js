@@ -55,13 +55,15 @@ class NewsletterManager {
             const data = await response.json();
 
             if (data.status === 'success') {
-                this.subscribers = data.data;
+                this.subscribers = data.data || [];
                 this.renderSubscribers();
             } else {
                 throw new Error(data.message || 'Failed to load subscribers');
             }
         } catch (error) {
             console.error('Error loading subscribers:', error);
+            this.subscribers = [];
+            this.renderSubscribers();
             this.showNotification('Error loading subscribers', 'error');
         }
     }
@@ -72,13 +74,15 @@ class NewsletterManager {
             const data = await response.json();
 
             if (data.status === 'success') {
-                this.notifications = data.data;
+                this.notifications = data.data || [];
                 this.renderNotifications();
             } else {
                 throw new Error(data.message || 'Failed to load notifications');
             }
         } catch (error) {
             console.error('Error loading notifications:', error);
+            this.notifications = [];
+            this.renderNotifications();
             this.showNotification('Error loading notifications', 'error');
         }
     }
@@ -89,13 +93,15 @@ class NewsletterManager {
             const data = await response.json();
 
             if (data.status === 'success') {
-                this.products = data.data;
+                this.products = data.data || [];
                 this.populateProductSelect();
             } else {
                 throw new Error(data.message || 'Failed to load products');
             }
         } catch (error) {
             console.error('Error loading products:', error);
+            this.products = [];
+            this.populateProductSelect();
             this.showNotification('Error loading products', 'error');
         }
     }
@@ -129,11 +135,22 @@ class NewsletterManager {
         const tbody = document.getElementById('subscribersTableBody');
         tbody.innerHTML = '';
 
+        // Check if subscribers exist and is an array
+        if (!this.subscribers || !Array.isArray(this.subscribers)) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No subscribers found</td></tr>';
+            return;
+        }
+
+        if (this.subscribers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No subscribers yet</td></tr>';
+            return;
+        }
+
         this.subscribers.forEach(subscriber => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${subscriber.email}
+                    ${subscriber.email || 'N/A'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${subscriber.is_active
@@ -144,7 +161,7 @@ class NewsletterManager {
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${new Date(subscriber.created_at).toLocaleDateString()}
+                    ${subscriber.created_at ? new Date(subscriber.created_at).toLocaleDateString() : 'N/A'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="newsletterManager.toggleSubscriberStatus('${subscriber.email}', ${subscriber.is_active})" 
@@ -165,17 +182,28 @@ class NewsletterManager {
         const tbody = document.getElementById('notificationsTableBody');
         tbody.innerHTML = '';
 
+        // Check if notifications exist and is an array
+        if (!this.notifications || !Array.isArray(this.notifications)) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No notifications found</td></tr>';
+            return;
+        }
+
+        if (this.notifications.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No notifications sent yet</td></tr>';
+            return;
+        }
+
         this.notifications.forEach(notification => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${notification.product.name}
+                    ${notification.product?.name || 'Unknown Product'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${new Date(notification.sent_at).toLocaleDateString()}
+                    ${notification.sent_at ? new Date(notification.sent_at).toLocaleDateString() : 'N/A'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${notification.sent_count}
+                    ${notification.sent_count || 0}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${notification.status === 'sent'
@@ -184,7 +212,7 @@ class NewsletterManager {
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-red-100 text-red-800'
                 }">
-                        ${notification.status}
+                        ${notification.status || 'unknown'}
                     </span>
                 </td>
             `;
@@ -196,17 +224,28 @@ class NewsletterManager {
         const select = document.getElementById('productSelect');
         select.innerHTML = '<option value="">Choose a product...</option>';
 
+        // Check if products exist and is an array
+        if (!this.products || !Array.isArray(this.products)) {
+            return;
+        }
+
         this.products
             .filter(product => product.is_active)
             .forEach(product => {
                 const option = document.createElement('option');
                 option.value = product.id || product._id;
-                option.textContent = `${product.name} - Rp ${product.price.toLocaleString()}`;
+                option.textContent = `${product.name || 'Unknown Product'} - Rp ${(product.price || 0).toLocaleString()}`;
                 select.appendChild(option);
             });
     }
 
     filterSubscribers(filter) {
+        // Check if subscribers exist and is an array
+        if (!this.subscribers || !Array.isArray(this.subscribers)) {
+            this.renderFilteredSubscribers([]);
+            return;
+        }
+
         let filteredSubscribers = [...this.subscribers];
 
         if (filter === 'active') {
@@ -222,11 +261,22 @@ class NewsletterManager {
         const tbody = document.getElementById('subscribersTableBody');
         tbody.innerHTML = '';
 
+        // Check if subscribers array is valid
+        if (!subscribers || !Array.isArray(subscribers)) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No subscribers found</td></tr>';
+            return;
+        }
+
+        if (subscribers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No subscribers match the filter</td></tr>';
+            return;
+        }
+
         subscribers.forEach(subscriber => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${subscriber.email}
+                    ${subscriber.email || 'N/A'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${subscriber.is_active
@@ -237,7 +287,7 @@ class NewsletterManager {
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${new Date(subscriber.created_at).toLocaleDateString()}
+                    ${subscriber.created_at ? new Date(subscriber.created_at).toLocaleDateString() : 'N/A'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="newsletterManager.toggleSubscriberStatus('${subscriber.email}', ${subscriber.is_active})" 
@@ -256,13 +306,20 @@ class NewsletterManager {
 
     updateNotificationPreview(productId) {
         const preview = document.getElementById('notificationPreview');
+
+        // Check if products exist and is an array
+        if (!this.products || !Array.isArray(this.products)) {
+            preview.innerHTML = '<p class="text-gray-500">No products available...</p>';
+            return;
+        }
+
         const product = this.products.find(p => (p.id || p._id) === productId);
 
         if (product) {
             preview.innerHTML = `
-                <h3 class="font-semibold text-lg mb-2">${product.name}</h3>
-                <p class="text-gray-600 mb-2"><strong>Price:</strong> Rp ${product.price.toLocaleString()}</p>
-                <p class="text-gray-600 mb-2"><strong>Category:</strong> ${product.category}</p>
+                <h3 class="font-semibold text-lg mb-2">${product.name || 'Unknown Product'}</h3>
+                <p class="text-gray-600 mb-2"><strong>Price:</strong> Rp ${(product.price || 0).toLocaleString()}</p>
+                <p class="text-gray-600 mb-2"><strong>Category:</strong> ${product.category || 'N/A'}</p>
                 <p class="text-gray-600">${product.description || 'No description available'}</p>
             `;
         } else {
@@ -271,14 +328,15 @@ class NewsletterManager {
     }
 
     updateSubscriberCount() {
-        const activeCount = this.subscribers.filter(s => s.is_active).length;
+        const activeCount = this.subscribers && Array.isArray(this.subscribers) ? this.subscribers.filter(s => s.is_active).length : 0;
         document.getElementById('subscriberCount').textContent = activeCount;
     }
 
     updateStats() {
-        const totalSubscribers = this.subscribers.length;
-        const activeSubscribers = this.subscribers.filter(s => s.is_active).length;
-        const notificationsSent = this.notifications.length;
+        // Check if subscribers exist and is an array
+        const totalSubscribers = this.subscribers && Array.isArray(this.subscribers) ? this.subscribers.length : 0;
+        const activeSubscribers = this.subscribers && Array.isArray(this.subscribers) ? this.subscribers.filter(s => s.is_active).length : 0;
+        const notificationsSent = this.notifications && Array.isArray(this.notifications) ? this.notifications.length : 0;
 
         document.getElementById('totalSubscribers').textContent = totalSubscribers;
         document.getElementById('activeSubscribers').textContent = activeSubscribers;
@@ -367,13 +425,25 @@ class NewsletterManager {
     }
 
     exportSubscribers() {
+        // Check if subscribers exist and is an array
+        if (!this.subscribers || !Array.isArray(this.subscribers)) {
+            this.showNotification('No subscribers to export', 'error');
+            return;
+        }
+
         const activeSubscribers = this.subscribers.filter(s => s.is_active);
+
+        if (activeSubscribers.length === 0) {
+            this.showNotification('No active subscribers to export', 'error');
+            return;
+        }
+
         const csvContent = [
             ['Email', 'Status', 'Subscribed Date'],
             ...activeSubscribers.map(s => [
-                s.email,
+                s.email || 'N/A',
                 s.is_active ? 'Active' : 'Inactive',
-                new Date(s.created_at).toLocaleDateString()
+                s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'
             ])
         ].map(row => row.join(',')).join('\n');
 
