@@ -13,44 +13,41 @@ class NewsletterManager {
     }
 
     async checkAuthAndInit() {
+        const adminOnly = document.getElementById('adminOnly');
+        const notAdmin = document.getElementById('notAdmin');
+        const adminName = document.getElementById('adminName');
+        const adminRole = document.getElementById('adminRole');
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            if (adminOnly) adminOnly.classList.add('hidden');
+            if (notAdmin) notAdmin.classList.remove('hidden');
+            return;
+        }
+
         try {
-            // Check if user is logged in
-            const token = localStorage.getItem('token');
-            if (!token) {
-                this.showNotAdmin();
-                return;
-            }
-
-            // Verify token and get user info
-            const response = await fetch(`${this.apiBaseUrl}/auth/verify`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+            const response = await fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/profile', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token }
             });
-
-            const data = await response.json();
-
-            if (data.status === 'success' && data.user) {
-                this.user = data.user;
-
-                // Check if user is admin
-                if (data.user.role === 'admin') {
-                    this.isAdmin = true;
-                    this.updateAdminInfo();
-                    this.setupEventListeners();
-                    await this.loadData();
-                    this.updateStats();
-                } else {
-                    this.showNotAdmin();
-                }
+            const profile = await response.json();
+            if (profile.role !== 'admin') {
+                if (adminOnly) adminOnly.classList.add('hidden');
+                if (notAdmin) notAdmin.classList.remove('hidden');
             } else {
-                this.showNotAdmin();
+                if (adminOnly) adminOnly.classList.remove('hidden');
+                if (notAdmin) notAdmin.classList.add('hidden');
+                if (adminName) adminName.textContent = profile.fullname || profile.username || profile.email || 'Admin';
+                if (adminRole) adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
+                this.user = profile;
+                this.isAdmin = true;
+                this.setupEventListeners();
+                await this.loadData();
+                this.updateStats();
             }
         } catch (error) {
-            console.error('Auth error:', error);
-            this.showNotAdmin();
+            if (adminOnly) adminOnly.classList.add('hidden');
+            if (notAdmin) notAdmin.classList.remove('hidden');
         }
     }
 
@@ -67,15 +64,12 @@ class NewsletterManager {
         // Update admin name and role in header
         const adminName = document.getElementById('adminName');
         const adminRole = document.getElementById('adminRole');
-
         if (adminName && this.user) {
-            adminName.textContent = this.user.name || this.user.email || 'Admin';
+            adminName.textContent = this.user.fullname || this.user.username || this.user.email || 'Admin';
         }
-
         if (adminRole && this.user) {
-            adminRole.textContent = this.user.role === 'admin' ? 'Administrator' : 'User';
+            adminRole.textContent = this.user.role === 'admin' ? 'Administrator' : this.user.role;
         }
-
         // Show admin content
         const adminOnly = document.getElementById('adminOnly');
         if (adminOnly) {
