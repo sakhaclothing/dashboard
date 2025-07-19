@@ -23,7 +23,10 @@ if (!token) {
                 if (notAdmin) notAdmin.classList.add('hidden');
                 if (adminName) adminName.textContent = profile.fullname || profile.username || profile.email || 'Admin';
                 if (adminRole) adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
-                window.productManager = new ProductManager();
+                // Hanya inisialisasi sekali!
+                if (!window.productManager) {
+                    window.productManager = new ProductManager();
+                }
             }
         })
         .catch(() => {
@@ -37,9 +40,9 @@ class ProductManager {
     constructor() {
         this.products = [];
         this.currentProduct = null;
-        this.apiBaseUrl = 'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha'; // Update with your actual backend URL
+        this.apiBaseUrl = 'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha';
         this.isSaving = false;
-
+        console.log('ProductManager initialized');
         this.initializeEventListeners();
         this.loadProducts();
     }
@@ -68,10 +71,15 @@ class ProductManager {
         });
 
         // Form submission
-        document.getElementById('productForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveProduct();
-        });
+        const productForm = document.getElementById('productForm');
+        if (!productForm._submitAttached) {
+            productForm.addEventListener('submit', (e) => {
+                console.log('Form submit event attached');
+                e.preventDefault();
+                this.saveProduct();
+            });
+            productForm._submitAttached = true;
+        }
 
         // Search and filters
         document.getElementById('searchInput').addEventListener('input', (e) => {
