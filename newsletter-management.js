@@ -6,11 +6,85 @@ class NewsletterManager {
         this.notifications = [];
         this.products = [];
         this.currentTab = 'subscribers';
+        this.isAdmin = false;
+        this.user = null;
 
-        this.init();
+        this.checkAuthAndInit();
+    }
+
+    async checkAuthAndInit() {
+        try {
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                this.showNotAdmin();
+                return;
+            }
+
+            // Verify token and get user info
+            const response = await fetch(`${this.apiBaseUrl}/auth/verify`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success' && data.user) {
+                this.user = data.user;
+
+                // Check if user is admin
+                if (data.user.role === 'admin') {
+                    this.isAdmin = true;
+                    this.updateAdminInfo();
+                    this.setupEventListeners();
+                    await this.loadData();
+                    this.updateStats();
+                } else {
+                    this.showNotAdmin();
+                }
+            } else {
+                this.showNotAdmin();
+            }
+        } catch (error) {
+            console.error('Auth error:', error);
+            this.showNotAdmin();
+        }
+    }
+
+    showNotAdmin() {
+        // Hide admin content
+        const adminOnly = document.getElementById('adminOnly');
+        if (adminOnly) adminOnly.classList.add('hidden');
+        // Show not admin content
+        const notAdmin = document.getElementById('notAdmin');
+        if (notAdmin) notAdmin.classList.remove('hidden');
+    }
+
+    updateAdminInfo() {
+        // Update admin name and role in header
+        const adminName = document.getElementById('adminName');
+        const adminRole = document.getElementById('adminRole');
+
+        if (adminName && this.user) {
+            adminName.textContent = this.user.name || this.user.email || 'Admin';
+        }
+
+        if (adminRole && this.user) {
+            adminRole.textContent = this.user.role === 'admin' ? 'Administrator' : 'User';
+        }
+
+        // Show admin content
+        const adminOnly = document.getElementById('adminOnly');
+        if (adminOnly) {
+            adminOnly.classList.remove('hidden');
+        }
     }
 
     async init() {
+        // This method is now called after authentication
         this.setupEventListeners();
         await this.loadData();
         this.updateStats();
@@ -39,6 +113,42 @@ class NewsletterManager {
             e.preventDefault();
             this.sendNotification();
         });
+
+        // Logout button
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                this.logout();
+            });
+        }
+
+        // Mobile sidebar toggle
+        const openSidebarBtn = document.getElementById('openSidebar');
+        const sidebar = document.getElementById('sidebar');
+
+        if (openSidebarBtn && sidebar) {
+            openSidebarBtn.addEventListener('click', () => {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('block');
+            });
+        }
+    }
+
+    logout() {
+        // Clear local storage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        // Redirect to login page
+        window.location.href = '/login';
+    }
+
+    getAuthHeaders() {
+        const token = localStorage.getItem('token');
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
     }
 
     async loadData() {
@@ -51,7 +161,16 @@ class NewsletterManager {
 
     async loadSubscribers() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/newsletter/subscribers`);
+            const response = await fetch(`${this.apiBaseUrl}/newsletter/subscribers`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                this.showAccessDenied('Session expired. Please login again.');
+                return;
+            }
+
             const data = await response.json();
 
             if (data.status === 'success') {
@@ -70,7 +189,10 @@ class NewsletterManager {
 
     async loadNotifications() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/newsletter/history`);
+            const response = await fetch(`${this.apiBaseUrl}/newsletter/history`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
             const data = await response.json();
 
             if (data.status === 'success') {
@@ -89,7 +211,10 @@ class NewsletterManager {
 
     async loadProducts() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/products?all=true`);
+            const response = await fetch(`${this.apiBaseUrl}/products?all=true`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
             const data = await response.json();
 
             if (data.status === 'success') {
@@ -346,7 +471,10 @@ class NewsletterManager {
     async toggleSubscriberStatus(email, currentStatus) {
         try {
             const action = currentStatus ? 'unsubscribe' : 'subscribe';
-            const response = await fetch(`${this.apiBaseUrl}/newsletter/${action}?email=${encodeURIComponent(email)}`);
+            const response = await fetch(`${this.apiBaseUrl}/newsletter/${action}?email=${encodeURIComponent(email)}`, {
+                method: 'POST',
+                headers: this.getAuthHeaders()
+            });
             const data = await response.json();
 
             if (data.status === 'success') {
@@ -406,7 +534,8 @@ class NewsletterManager {
         if (result.isConfirmed) {
             try {
                 const response = await fetch(`${this.apiBaseUrl}/newsletter/notify/${productId}`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: this.getAuthHeaders()
                 });
                 const data = await response.json();
 
