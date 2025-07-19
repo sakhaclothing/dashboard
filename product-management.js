@@ -59,18 +59,25 @@ class ProductManager {
 
     async loadProducts() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/products`);
+            const url = `${this.apiBaseUrl}/products`;
+            console.log('Loading products from:', url);
+
+            const response = await fetch(url);
+            console.log('Load response status:', response.status);
+
             const data = await response.json();
+            console.log('Load response data:', data);
 
             if (data.status === 'success') {
                 this.products = data.data;
+                console.log('Loaded products:', this.products);
                 this.renderProducts();
             } else {
                 throw new Error(data.message || 'Failed to load products');
             }
         } catch (error) {
             console.error('Error loading products:', error);
-            this.showNotification('Error loading products', 'error');
+            this.showNotification(`Error loading products: ${error.message}`, 'error');
         }
     }
 
@@ -90,6 +97,9 @@ class ProductManager {
         }
 
         productsToRender.forEach(product => {
+            // Use _id if available (MongoDB ObjectId), otherwise use id
+            const productId = product._id || product.id;
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -123,18 +133,18 @@ class ProductManager {
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <button onclick="productManager.toggleFeatured(${product.id})" 
+                    <button onclick="productManager.toggleFeatured('${productId}')" 
                             class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.is_featured ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
                 }">
                         ${product.is_featured ? 'Featured' : 'Not Featured'}
                     </button>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button onclick="productManager.editProduct(${product.id})" 
+                    <button onclick="productManager.editProduct('${productId}')" 
                             class="text-indigo-600 hover:text-indigo-900 mr-3">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="productManager.deleteProduct(${product.id})" 
+                    <button onclick="productManager.deleteProduct('${productId}')" 
                             class="text-red-600 hover:text-red-900">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -194,7 +204,9 @@ class ProductManager {
     }
 
     fillFormWithProduct(product) {
-        document.getElementById('productId').value = product.id;
+        // Use _id if available (MongoDB ObjectId), otherwise use id
+        const productId = product._id || product.id;
+        document.getElementById('productId').value = productId;
         document.getElementById('productName').value = product.name;
         document.getElementById('productDescription').value = product.description || '';
         document.getElementById('productPrice').value = product.price;
@@ -224,6 +236,8 @@ class ProductManager {
             const url = isEdit ? `${this.apiBaseUrl}/products/${productId}` : `${this.apiBaseUrl}/products`;
             const method = isEdit ? 'PUT' : 'POST';
 
+            console.log('Saving product:', { url, method, formData, isEdit });
+
             const response = await fetch(url, {
                 method: method,
                 headers: {
@@ -232,7 +246,9 @@ class ProductManager {
                 body: JSON.stringify(formData)
             });
 
+            console.log('Response status:', response.status);
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (data.status === 'success') {
                 this.showNotification(
@@ -246,18 +262,29 @@ class ProductManager {
             }
         } catch (error) {
             console.error('Error saving product:', error);
-            this.showNotification('Error saving product', 'error');
+            this.showNotification(`Error saving product: ${error.message}`, 'error');
         }
     }
 
     async editProduct(productId) {
-        const product = this.products.find(p => p.id === productId);
+        console.log('Editing product with ID:', productId);
+        console.log('Available products:', this.products);
+
+        // Try to find by both id and _id (MongoDB ObjectId)
+        const product = this.products.find(p => p.id === productId || p._id === productId);
+
         if (product) {
+            console.log('Found product:', product);
             this.openModal(product);
+        } else {
+            console.error('Product not found with ID:', productId);
+            this.showNotification('Product not found', 'error');
         }
     }
 
     async deleteProduct(productId) {
+        console.log('Deleting product with ID:', productId);
+
         const result = await Swal.fire({
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -270,11 +297,16 @@ class ProductManager {
 
         if (result.isConfirmed) {
             try {
-                const response = await fetch(`${this.apiBaseUrl}/products/${productId}`, {
+                const url = `${this.apiBaseUrl}/products/${productId}`;
+                console.log('Delete URL:', url);
+
+                const response = await fetch(url, {
                     method: 'DELETE'
                 });
 
+                console.log('Delete response status:', response.status);
                 const data = await response.json();
+                console.log('Delete response data:', data);
 
                 if (data.status === 'success') {
                     this.showNotification('Product deleted successfully', 'success');
@@ -284,7 +316,7 @@ class ProductManager {
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
-                this.showNotification('Error deleting product', 'error');
+                this.showNotification(`Error deleting product: ${error.message}`, 'error');
             }
         }
     }

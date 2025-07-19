@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Sakha Clothing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">API Test - Sakha Clothing</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">API Base URL</h2>
+            <p class="text-gray-600 mb-4">https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha</p>
+            
+            <div class="space-y-4">
+                <button onclick="testGetProducts()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Test GET /products
+                </button>
+                
+                <button onclick="testCreateProduct()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Test POST /products
+                </button>
+                
+                <button onclick="testGetFeaturedProducts()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Test GET /products?featured=true
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="results" class="space-y-4">
+                <p class="text-gray-500">Click a button above to test the API...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha';
+        
+        function addResult(title, data, isError = false) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `p-4 rounded ${isError ? 'bg-red-100 border border-red-300' : 'bg-green-100 border border-green-300'}`;
+            
+            resultDiv.innerHTML = `
+                <h3 class="font-semibold ${isError ? 'text-red-800' : 'text-green-800'}">${title}</h3>
+                <pre class="mt-2 text-sm overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>
+            `;
+            
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        async function testGetProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/products`);
+                const data = await response.json();
+                
+                addResult('GET /products', {
+                    status: response.status,
+                    data: data
+                });
+            } catch (error) {
+                addResult('GET /products - ERROR', {
+                    error: error.message
+                }, true);
+            }
+        }
+        
+        async function testCreateProduct() {
+            try {
+                const testProduct = {
+                    name: "TEST PRODUCT",
+                    description: "This is a test product",
+                    price: 50000,
+                    category: "kaos",
+                    stock: 10,
+                    is_featured: false,
+                    is_active: true
+                };
+                
+                const response = await fetch(`${API_BASE}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testProduct)
+                });
+                
+                const data = await response.json();
+                
+                addResult('POST /products', {
+                    status: response.status,
+                    requestData: testProduct,
+                    responseData: data
+                });
+            } catch (error) {
+                addResult('POST /products - ERROR', {
+                    error: error.message
+                }, true);
+            }
+        }
+        
+        async function testGetFeaturedProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/products?featured=true`);
+                const data = await response.json();
+                
+                addResult('GET /products?featured=true', {
+                    status: response.status,
+                    data: data
+                });
+            } catch (error) {
+                addResult('GET /products?featured=true - ERROR', {
+                    error: error.message
+                }, true);
+            }
+        }
+    </script>
+</body>
+</html> 
