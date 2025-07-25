@@ -1,11 +1,9 @@
-// Cek token
-const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-const adminOnly = document.getElementById('adminOnly');
-const notAdmin = document.getElementById('notAdmin');
-const userTableBody = document.getElementById('userTableBody');
-const logoutBtn = document.getElementById('logoutBtn');
-const adminName = document.getElementById('adminName');
-const adminRole = document.getElementById('adminRole');
+import { postJSON } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/api.min.js";
+import { getCookie } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/cookie.min.js";
+import { validateRequired, validateEmail } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/validate.min.js";
+import { showLoading, hideLoading } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/loading.min.js";
+
+const token = getCookie('token');
 
 // Add User Modal elements
 const addUserBtn = document.getElementById('addUserBtn');
@@ -94,16 +92,21 @@ if (!token) {
 }
 
 function loadUsers() {
-    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/get-users', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token }
-    })
-        .then(res => res.json())
-        .then(data => {
-            allUsers = data.users;
-            updateStats();
-            applyFiltersAndRender();
-        });
+    showLoading('Loading users...');
+    
+    postJSON(
+        'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/get-users',
+        {},
+        (response) => {
+            hideLoading();
+            if (response.status === 200) {
+                allUsers = response.data.users;
+                updateStats();
+                applyFiltersAndRender();
+            }
+        },
+        { 'Authorization': 'Bearer ' + token }
+    );
 }
 
 function updateStats() {
@@ -286,54 +289,33 @@ addUserForm.addEventListener('submit', (e) => {
         role: formData.get('role')
     };
 
-    if (!userData.username || !userData.email || !userData.fullname || !userData.password) {
-        Swal.fire({
-            title: 'Error!',
-            text: 'Please fill in all required fields',
-            icon: 'error',
-            confirmButtonColor: '#000000'
-        });
+    // Validation
+    if (!validateRequired(userData.username) || !validateRequired(userData.fullname) || 
+        !validateRequired(userData.password) || !validateEmail(userData.email)) {
+        alert('Please fill in all required fields correctly');
         return;
     }
 
-    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify(userData)
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.message && data.message.includes('Berhasil')) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'User has been created successfully',
-                    icon: 'success',
-                    confirmButtonColor: '#000000'
-                });
+    showLoading('Adding user...');
 
-                addUserModal.classList.add('hidden');
+    postJSON(
+        'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/register',
+        userData,
+        (response) => {
+            hideLoading();
+            if (response.status === 201) {
+                alert('User added successfully!');
                 addUserForm.reset();
                 loadUsers();
             } else {
-                Swal.fire({
-                    title: 'Error!',
-                    text: data.error || 'Failed to create user',
-                    icon: 'error',
-                    confirmButtonColor: '#EF4444'
-                });
+                alert(response.data.error || 'Failed to add user');
             }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Network error. Please try again.',
-                icon: 'error',
-                confirmButtonColor: '#EF4444'
-            });
-        });
+        },
+        { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        }
+    );
 });
 
 // Edit User Modal functionality
