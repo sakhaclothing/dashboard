@@ -1,7 +1,9 @@
-import { postJSON } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/api.min.js";
-import { getCookie } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/cookie.min.js";
-import { validateRequired, validateEmail } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/validate.min.js";
-import { showLoading, hideLoading } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/loading.min.js";
+// Get token from cookie
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
 
 const token = getCookie('token');
 
@@ -24,26 +26,6 @@ const roleFilter = document.getElementById('roleFilter');
 const statusFilter = document.getElementById('statusFilter');
 const exportBtn = document.getElementById('exportBtn');
 
-// Pagination elements
-const pageSize = document.getElementById('pageSize');
-const prevPage = document.getElementById('prevPage');
-const nextPage = document.getElementById('nextPage');
-const currentPage = document.getElementById('currentPage');
-const totalPages = document.getElementById('totalPages');
-const showingCount = document.getElementById('showingCount');
-const totalCount = document.getElementById('totalCount');
-
-// Sort elements
-const sortUsername = document.getElementById('sortUsername');
-const sortEmail = document.getElementById('sortEmail');
-const sortRole = document.getElementById('sortRole');
-const sortStatus = document.getElementById('sortStatus');
-
-// Sidebar functionality
-const sidebar = document.getElementById('sidebar');
-const openSidebar = document.getElementById('openSidebar');
-const closeSidebar = document.getElementById('closeSidebar');
-
 // State management
 let allUsers = [];
 let filteredUsers = [];
@@ -55,58 +37,26 @@ let searchTerm = '';
 let roleFilterValue = '';
 let statusFilterValue = '';
 
-openSidebar.addEventListener('click', () => {
-    sidebar.classList.remove('-translate-x-full');
-});
-
-closeSidebar.addEventListener('click', () => {
-    sidebar.classList.add('-translate-x-full');
-});
-
-if (!token) {
-    adminOnly.classList.add('hidden');
-    notAdmin.classList.remove('hidden');
-} else {
-    // Cek role user
-    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/profile', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token }
-    })
-        .then(res => res.json())
-        .then(profile => {
-            if (profile.role !== 'admin') {
-                adminOnly.classList.add('hidden');
-                notAdmin.classList.remove('hidden');
-            } else {
-                adminOnly.classList.remove('hidden');
-                notAdmin.classList.add('hidden');
-                adminName.textContent = profile.fullname || profile.username || 'Admin';
-                adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
-                loadUsers();
-            }
-        })
-        .catch(() => {
-            adminOnly.classList.add('hidden');
-            notAdmin.classList.remove('hidden');
-        });
-}
-
 function loadUsers() {
-    showLoading('Loading users...');
-    
-    postJSON(
-        'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/get-users',
-        {},
-        (response) => {
-            hideLoading();
-            if (response.status === 200) {
-                allUsers = response.data.users;
-                updateStats();
-                applyFiltersAndRender();
-            }
+    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/get-users', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
         },
-        { 'Authorization': 'Bearer ' + token }
-    );
+        body: JSON.stringify({})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.users) {
+            allUsers = data.users;
+            updateStats();
+            applyFiltersAndRender();
+        }
+    })
+    .catch(err => {
+        console.error('Error loading users:', err);
+    });
 }
 
 function updateStats() {
