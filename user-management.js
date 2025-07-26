@@ -1,11 +1,11 @@
-// Get token from cookie
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
-const token = getCookie('token');
+// Cek token
+const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+const adminOnly = document.getElementById('adminOnly');
+const notAdmin = document.getElementById('notAdmin');
+const userTableBody = document.getElementById('userTableBody');
+const logoutBtn = document.getElementById('logoutBtn');
+const adminName = document.getElementById('adminName');
+const adminRole = document.getElementById('adminRole');
 
 // Add User Modal elements
 const addUserBtn = document.getElementById('addUserBtn');
@@ -26,6 +26,26 @@ const roleFilter = document.getElementById('roleFilter');
 const statusFilter = document.getElementById('statusFilter');
 const exportBtn = document.getElementById('exportBtn');
 
+// Pagination elements
+const pageSize = document.getElementById('pageSize');
+const prevPage = document.getElementById('prevPage');
+const nextPage = document.getElementById('nextPage');
+const currentPage = document.getElementById('currentPage');
+const totalPages = document.getElementById('totalPages');
+const showingCount = document.getElementById('showingCount');
+const totalCount = document.getElementById('totalCount');
+
+// Sort elements
+const sortUsername = document.getElementById('sortUsername');
+const sortEmail = document.getElementById('sortEmail');
+const sortRole = document.getElementById('sortRole');
+const sortStatus = document.getElementById('sortStatus');
+
+// Sidebar functionality
+const sidebar = document.getElementById('sidebar');
+const openSidebar = document.getElementById('openSidebar');
+const closeSidebar = document.getElementById('closeSidebar');
+
 // State management
 let allUsers = [];
 let filteredUsers = [];
@@ -37,26 +57,53 @@ let searchTerm = '';
 let roleFilterValue = '';
 let statusFilterValue = '';
 
+openSidebar.addEventListener('click', () => {
+    sidebar.classList.remove('-translate-x-full');
+});
+
+closeSidebar.addEventListener('click', () => {
+    sidebar.classList.add('-translate-x-full');
+});
+
+if (!token) {
+    adminOnly.classList.add('hidden');
+    notAdmin.classList.remove('hidden');
+} else {
+    // Cek role user
+    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/profile', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+    })
+        .then(res => res.json())
+        .then(profile => {
+            if (profile.role !== 'admin') {
+                adminOnly.classList.add('hidden');
+                notAdmin.classList.remove('hidden');
+            } else {
+                adminOnly.classList.remove('hidden');
+                notAdmin.classList.add('hidden');
+                adminName.textContent = profile.fullname || profile.username || 'Admin';
+                adminRole.textContent = profile.role === 'admin' ? 'Administrator' : profile.role;
+                loadUsers();
+            }
+        })
+        .catch(() => {
+            adminOnly.classList.add('hidden');
+            notAdmin.classList.remove('hidden');
+        });
+}
+
 function loadUsers() {
     fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/get-users', {
         method: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({})
+        headers: { 'Authorization': 'Bearer ' + token }
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.users) {
+        .then(res => res.json())
+        .then(data => {
             allUsers = data.users;
             updateStats();
             applyFiltersAndRender();
-        }
-    })
-    .catch(err => {
-        console.error('Error loading users:', err);
-    });
+        });
 }
 
 function updateStats() {
@@ -239,33 +286,54 @@ addUserForm.addEventListener('submit', (e) => {
         role: formData.get('role')
     };
 
-    // Validation
-    if (!validateRequired(userData.username) || !validateRequired(userData.fullname) || 
-        !validateRequired(userData.password) || !validateEmail(userData.email)) {
-        alert('Please fill in all required fields correctly');
+    if (!userData.username || !userData.email || !userData.fullname || !userData.password) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please fill in all required fields',
+            icon: 'error',
+            confirmButtonColor: '#000000'
+        });
         return;
     }
 
-    showLoading('Adding user...');
+    fetch('https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(userData)
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message && data.message.includes('Berhasil')) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'User has been created successfully',
+                    icon: 'success',
+                    confirmButtonColor: '#000000'
+                });
 
-    postJSON(
-        'https://asia-southeast2-ornate-course-437014-u9.cloudfunctions.net/sakha/auth/register',
-        userData,
-        (response) => {
-            hideLoading();
-            if (response.status === 201) {
-                alert('User added successfully!');
+                addUserModal.classList.add('hidden');
                 addUserForm.reset();
                 loadUsers();
             } else {
-                alert(response.data.error || 'Failed to add user');
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.error || 'Failed to create user',
+                    icon: 'error',
+                    confirmButtonColor: '#EF4444'
+                });
             }
-        },
-        { 
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-        }
-    );
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Network error. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#EF4444'
+            });
+        });
 });
 
 // Edit User Modal functionality
