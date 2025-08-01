@@ -272,6 +272,26 @@
     </div>
   </div>
 
+  <!-- JSCROOT Library -->
+  <script type="module">
+    import { getCookie, setCookieWithExpireHour } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/cookie.min.js";
+    import { post, get, put, del } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/api.min.js";
+    import { validateEmail, validatePassword, validateRequired } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/validate.min.js";
+    import { showLoading, hideLoading } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/loading.min.js";
+    import { getElement, createElement, appendChild } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/element.min.js";
+    import { getUrlParam, setUrlParam } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/url.min.js";
+    import { getBrowser, getOS, getDevice } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/useragent.min.js";
+    
+    window.jscroot = { 
+      getCookie, setCookieWithExpireHour,
+      post, get, put, del,
+      validateEmail, validatePassword, validateRequired,
+      showLoading, hideLoading,
+      getElement, createElement, appendChild,
+      getUrlParam, setUrlParam,
+      getBrowser, getOS, getDevice
+    };
+  </script>
   <script src="product-management.js"></script>
 </body>
 </html> 
