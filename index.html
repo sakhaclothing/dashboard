@@ -320,7 +320,7 @@
   <script type="module">
     import { getCookie, setCookieWithExpireHour } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/cookie.min.js";
     import { getJSON, postJSON, putJSON, deleteJSON } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/api.min.js";
-    import { validateEmail, validatePassword, validateRequired } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/validate.min.js";
+    import { validateUserName, validatePhoneNumber, formatRupiah } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/validate.min.js";
     import { loading } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/loading.min.js";
     import { container, getValue, setValue, setInner, show, hide } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/element.min.js";
     import { getQueryString, setQueryString } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.2.8/url.min.js";
@@ -329,7 +329,7 @@
     window.jscroot = { 
       getCookie, setCookieWithExpireHour,
       getJSON, postJSON, putJSON, deleteJSON,
-      validateEmail, validatePassword, validateRequired,
+      validateUserName, validatePhoneNumber, formatRupiah,
       loading,
       getElement: container, getValue, setValue, setInner, show, hide,
       getQueryString, setQueryString,
