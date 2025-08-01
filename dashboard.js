@@ -158,13 +158,13 @@ class DashboardManager {
         await waitForJscroot();
 
         const lastAccessed = window.jscroot.getCookie('dashboard_accessed');
-        const userDevice = window.jscroot.getDevice();
+        const isMobile = window.jscroot.isMobile();
 
         if (lastAccessed === 'true') {
             console.log('User has accessed dashboard before');
         }
 
-        if (userDevice === 'mobile') {
+        if (isMobile) {
             // Adjust dashboard layout for mobile
             console.log('Mobile device detected, adjusting dashboard layout');
         }
