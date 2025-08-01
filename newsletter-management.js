@@ -133,6 +133,9 @@ class NewsletterManager {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 
+        // Clear user session cookie
+        document.cookie = 'user_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
         // Redirect to login page
         window.location.href = '/login';
     }

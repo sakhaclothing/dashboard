@@ -233,6 +233,7 @@ class DashboardManager {
                 localStorage.removeItem('token');
                 sessionStorage.removeItem('token');
                 window.jscroot.setCookieWithExpireHour('dashboard_accessed', '', 0);
+                window.jscroot.setCookieWithExpireHour('user_session', '', 0);
 
                 document.body.removeChild(loadingElement);
 
